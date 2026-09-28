@@ -576,7 +576,7 @@
   .photo-btns{ display:flex; gap:8px; flex:1; min-width:0; }
   .photo-btns .ghost{ flex:0 1 auto; text-align:center; position:relative; overflow:hidden; }
   .photo-btns .ghost:first-child{ flex:1; }
-  .vh-file{ position:absolute; inset:0; opacity:0; width:100%; height:100%; cursor:pointer; }
+  .vh-file{ position:fixed; left:-9999px; top:0; width:1px; height:1px; opacity:0; }
 
   /* formulário rápido */
   .lbl-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:7px; }
@@ -1145,8 +1145,9 @@ var QSplash = (function () {
   <div class="photo-row">
     <div class="avatar big" id="pAvatar"></div>
     <div class="photo-btns">
-      <label class="ghost press"><span id="pPhotoLbl"></span><input type="file" id="pPhoto" accept="image/*" class="vh-file"></label>
+      <button type="button" class="ghost press" id="pPhotoBtn"><span id="pPhotoLbl"></span></button>
       <button type="button" class="ghost press" id="pPhotoDel" data-i="removePhoto"></button>
+      <input type="file" id="pPhoto" accept="image/*" class="vh-file" tabindex="-1" aria-hidden="true">
     </div>
   </div>
   <div class="form-error" id="pPhotoErr" hidden></div>
@@ -2502,10 +2503,10 @@ var QSplash = (function () {
     if (reduceMotion || typeof window.DeviceOrientationEvent === 'undefined') return;
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
       var ask = function () {
-        document.removeEventListener('click', ask, true);
+        $('metalWrap').removeEventListener('click', ask, true);
         try { DeviceOrientationEvent.requestPermission().then(function (r) { if (r === 'granted') startGyro(); }).catch(function () {}); } catch (e) {}
       };
-      document.addEventListener('click', ask, true);
+      $('metalWrap').addEventListener('click', ask, true);
     } else startGyro();
   }
 
@@ -4718,6 +4719,7 @@ var QSplash = (function () {
     $('coachSkip').addEventListener('click', function () { endTips(true); });
     window.addEventListener('scroll', onViewportMove, { passive: true, capture: true });
     window.addEventListener('resize', onViewportMove);
+    $('pPhotoBtn').addEventListener('click', function () { $('pPhotoErr').hidden = true; try { $('pPhoto').click(); } catch (e) {} });
     $('pPhoto').addEventListener('change', function () {
       var f = this.files && this.files[0]; this.value = '';
       if (!f) return;
