@@ -83,6 +83,21 @@
   /* cartão de metal */
   .card-head{ display:flex; align-items:center; justify-content:space-between; margin-top:24px; gap:10px; }
   .card-head > span{ font-size:13px; color:var(--muted); font-weight:600; }
+  .mnav{ display:flex; align-items:center; gap:2px; min-width:0; margin-left:-8px; }
+  .mnav button{ border:none; background:none; color:var(--text); cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .mnav [data-mdir]{ width:34px; height:34px; border-radius:50%; display:grid; place-items:center; flex:0 0 auto; }
+  .mnav [data-mdir] svg{ width:19px; height:19px; stroke-width:2.2; }
+  .mnav [data-mdir]:disabled{ opacity:.22; cursor:default; }
+  .mnav [data-mdir]:not(:disabled):active{ background:var(--surface-2); }
+  .mnav-lbl{ font-family:var(--display); font-size:17px; font-weight:800; letter-spacing:-.01em; padding:4px 2px; white-space:nowrap; text-transform:capitalize; }
+  .mnav-lbl small{ font-family:var(--body); font-size:11px; font-weight:700; color:var(--muted); margin-left:5px; text-transform:none; }
+  @media (max-width:359px){ .card-head{ flex-wrap:wrap; row-gap:6px; } }
+  .metal-wrap.m-swap{ animation:mSwapL .32s var(--ease) both; }
+  .metal-wrap.m-swap.fwd{ animation-name:mSwapR; }
+  @keyframes mSwapL{ from{ opacity:.25; transform:translateX(-18px); } to{ opacity:1; transform:none; } }
+  @keyframes mSwapR{ from{ opacity:.25; transform:translateX(18px); } to{ opacity:1; transform:none; } }
+  .tier-row.closed .tier-next{ color:var(--muted); }
+  .tier-row.closed .tier-track i::after{ animation:none; }
   .period{ display:flex; gap:2px; background:var(--surface-2); border-radius:999px; padding:3px; }
   .period button{ border:none; background:none; font-size:12px; font-weight:700; color:var(--muted); padding:6px 11px; border-radius:999px; cursor:pointer; white-space:nowrap; }
   .period button.active{ background:var(--text); color:var(--bg); }
@@ -593,6 +608,13 @@
   .row.is-paid .row-amt{ color:var(--muted); }
   .recv-btn{ width:100%; margin-top:12px; border:none; border-radius:14px; background:var(--paid-bg); color:var(--paid); font-size:14px; font-weight:800; padding:13px 12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; }
   .recv-btn svg{ width:18px; height:18px; }
+  .recv-row{ display:flex; gap:8px; margin-top:12px; }
+  .recv-row .recv-btn{ margin-top:0; flex:1; min-width:0; }
+  .part-btn{ flex:0 0 auto; border:none; border-radius:14px; background:var(--surface-2); color:var(--text); font-size:13px; font-weight:800; padding:0 14px; cursor:pointer; }
+  .pill.part-mark{ background:var(--owed-bg); color:var(--owed); }
+  .part-info{ display:flex; align-items:center; gap:10px; margin-top:8px; padding:10px 12px; border-radius:12px; background:var(--owed-bg); color:var(--owed); font-size:12.5px; font-weight:700; line-height:1.35; }
+  .part-info span{ flex:1; }
+  .part-info button{ border:none; background:none; color:inherit; font-size:12.5px; font-weight:800; text-decoration:underline; text-underline-offset:3px; cursor:pointer; padding:4px 0; }
   /* foto de perfil */
   .avatar{ overflow:hidden; padding:0; }
   .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
@@ -602,6 +624,12 @@
   .photo-btns .ghost{ flex:0 1 auto; text-align:center; position:relative; overflow:hidden; }
   .photo-btns .ghost:first-child{ flex:1; }
   .vh-file{ position:fixed; left:-9999px; top:0; width:1px; height:1px; opacity:0; }
+  .bk-box{ margin:2px 0 14px; padding:14px; border-radius:16px; background:var(--surface-2); }
+  .bk-t{ font-weight:800; font-size:14px; }
+  .bk-sub{ color:var(--muted); font-size:12.5px; font-weight:600; line-height:1.4; margin:3px 0 10px; }
+  .bk-row{ display:flex; gap:8px; }
+  .bk-row .ghost{ flex:1; display:flex; align-items:center; justify-content:center; gap:6px; margin:0; }
+  .bk-row .ghost .i{ width:17px; height:17px; }
 
   /* formulário rápido */
   .lbl-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:7px; }
@@ -837,7 +865,8 @@ var QSplash = (function () {
       <div class="tc-actions"><button type="button" class="ghost press" id="tcDiscard" data-i="discard"></button><button type="button" class="btn-stop press" id="tcStop"><svg class="i" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2.5"/></svg><span data-i="tStop"></span></button></div>
     </div>
     <div class="card-head">
-      <span data-i="summary"></span>
+      <span id="sumLbl" data-i="summary"></span>
+      <div class="mnav" id="mNav" hidden><button type="button" class="press" data-mdir="-1" id="mPrev"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><button type="button" class="mnav-lbl" id="mNavLbl"></button><button type="button" class="press" data-mdir="1" id="mNext"><svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div>
       <div class="period" id="chips">
         <button data-period="month" data-i="gM"></button>
         <button data-period="14" data-i="d14"></button>
@@ -1031,6 +1060,7 @@ var QSplash = (function () {
       <button type="button" data-v="false" data-i="pending"></button>
       <button type="button" data-v="true" data-i="paid"></button>
     </div>
+    <div class="part-info" id="partInfo" hidden><span id="partInfoTxt"></span><button type="button" id="partClear" data-i="partClear"></button></div>
   </div>
   <div id="adjWrap" hidden>
     <button type="button" class="adj-toggle" id="adjToggle"><svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><span id="adjToggleLbl"></span><span class="adj-opt" data-i="optional"></span></button>
@@ -1094,6 +1124,19 @@ var QSplash = (function () {
     <button class="btn btn-danger" id="gDelete" data-i="delete" hidden></button>
     <button class="btn btn-secondary" data-close data-i="cancel"></button>
     <button class="btn btn-primary press" id="gSave" data-i="save"></button>
+  </div>
+</div>
+
+<div class="sheet" id="partSheet" hidden>
+  <div class="grabber"></div>
+  <div class="sheet-title" id="partTitle"></div>
+  <div class="field"><label for="ptAmount" data-i="amount"></label><input id="ptAmount" type="number" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+  <div class="dep-quick" id="ptQuick"></div>
+  <div class="dep-hint" id="ptHint"></div>
+  <div class="form-error" id="ptError" hidden></div>
+  <div class="sheet-actions">
+    <button class="btn btn-secondary" data-close="1" data-i="cancel"></button>
+    <button class="btn btn-primary press" id="ptSave" data-i="save"></button>
   </div>
 </div>
 
@@ -1200,6 +1243,15 @@ var QSplash = (function () {
   <button type="button" class="ghost press fb-btn" id="pFeedback"><svg class="i" viewBox="0 0 24 24"><path d="M4 19.5l1.3-3.9A8 8 0 1 1 8.6 19z"/><path d="M9 10.5h6M9 13.5h4"/></svg><span data-i="fbBtn"></span></button>
   <button type="button" class="link-btn" id="pInstall" data-i="igHowTo" hidden></button>
   <button type="button" class="link-btn" id="pTips" data-i="replayTips"></button>
+  <div class="bk-box" id="pBackup">
+    <div class="bk-t" data-i="bkTitle"></div>
+    <div class="bk-sub" id="bkSub"></div>
+    <div class="bk-row">
+      <button type="button" class="ghost press" id="pExport"><svg class="i" viewBox="0 0 24 24"><path d="M12 15V4M7.5 8.5L12 4l4.5 4.5"/><path d="M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14"/></svg><span data-i="bkExport"></span></button>
+      <button type="button" class="ghost press" id="pImportBtn"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5"/><path d="M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14"/></svg><span data-i="bkImport"></span></button>
+    </div>
+    <input type="file" id="pImport" class="vh-file" tabindex="-1" aria-hidden="true">
+  </div>
   <div class="form-error" id="pError" hidden></div>
   <div class="sheet-actions">
     <button class="btn btn-primary press" id="pSave"></button>
@@ -1554,6 +1606,32 @@ var QSplash = (function () {
     tipDone: ['Entendi', 'Entendido', 'Got it'],
     tipSkip: ['Pular', 'Saltar', 'Skip'],
     replayTips: ['Rever as dicas do app', 'Ver los consejos de nuevo', 'Show the app tips again'],
+    bkTitle: ['Backup dos seus dados', 'Copia de tus datos', 'Back up your data'],
+    bkSubOn: ['Salve um arquivo com tudo (turnos, gastos, empresas, metas e perfil). Use pra trocar de celular ou não perder nada.', 'Guarda un archivo con todo (turnos, gastos, empresas, metas y perfil). Úsalo para cambiar de celular o no perder nada.', 'Save a file with everything (shifts, expenses, companies, goals and profile). Use it to switch phones or never lose anything.'],
+    bkSubNew: ['Já usava o Quinzo em outro celular? Importe seu backup aqui.', '¿Ya usabas Quinzo en otro celular? Importa tu copia aquí.', 'Used Quinzo on another phone? Import your backup here.'],
+    bkExport: ['Salvar backup', 'Guardar copia', 'Save backup'],
+    bkImport: ['Importar backup', 'Importar copia', 'Import backup'],
+    bkSaved: ['Backup salvo', 'Copia guardada', 'Backup saved'],
+    bkBad: ['Esse arquivo não é um backup do Quinzo', 'Ese archivo no es una copia de Quinzo', "That file isn't a Quinzo backup"],
+    bkConfirm: ['Importar este backup?\n\n{e} turnos · {x} gastos · {c} empresas · {g} metas\n\nTudo que está neste celular agora vai ser trocado pelo backup.', '¿Importar esta copia?\n\n{e} turnos · {x} gastos · {c} empresas · {g} metas\n\nTodo lo que está en este celular ahora se reemplazará por la copia.', 'Import this backup?\n\n{e} shifts · {x} expenses · {c} companies · {g} goals\n\nEverything on this phone right now will be replaced by the backup.'],
+    bkDone: ['Pronto! {e} turnos importados', '¡Listo! {e} turnos importados', 'Done! {e} shifts imported'],
+    bkFail: ['Não deu pra importar. Tente de novo.', 'No se pudo importar. Inténtalo de nuevo.', "Couldn't import. Try again."],
+    mPrev: ['Mês anterior', 'Mes anterior', 'Previous month'],
+    mNext: ['Próximo mês', 'Mes siguiente', 'Next month'],
+    stClosed: ['Mês finalizado', 'Mes finalizado', 'Month closed'],
+    mClosedGoal: ['Meta batida · finalizado ✓', 'Meta cumplida · finalizado ✓', 'Goal hit · closed ✓'],
+    mClosedPct: ['Finalizado · {p}% da meta', 'Finalizado · {p}% de la meta', 'Closed · {p}% of goal'],
+    tipMonthNav: ['Meses anteriores|Toque na seta pra voltar e ver os turnos, as horas e os pagamentos dos meses que já passaram. Dá pra editar e marcar como recebido normalmente. Tocando no nome do mês você volta pro mês atual.', 'Meses anteriores|Toca la flecha para volver y ver los turnos, las horas y los pagos de los meses pasados. Puedes editarlos y marcarlos como cobrados normalmente. Tocando el nombre del mes vuelves al mes actual.', 'Past months|Tap the arrow to go back and see shifts, hours and payments from past months. You can still edit them and mark them as paid. Tap the month name to jump back to this month.'],
+    partBtn: ['Só uma parte', 'Solo una parte', 'Just part'],
+    partTitle: ['Quanto {c} pagou?', '¿Cuánto pagó {c}?', 'How much did {c} pay?'],
+    partHint: ['A receber: {a} em {n} turno(s). O valor sai dos turnos mais antigos primeiro.', 'Por cobrar: {a} en {n} turno(s). Se descuenta de los turnos más antiguos primero.', 'Owed: {a} across {n} shift(s). It comes off the oldest shifts first.'],
+    partAll: ['Tudo ({a})', 'Todo ({a})', 'All ({a})'],
+    partErr: ['Digite quanto você recebeu', 'Escribe cuánto recibiste', 'Enter how much you got'],
+    partDone: ['{a} recebido de {c} · faltam {r}', '{a} cobrado de {c} · faltan {r}', 'Got {a} from {c} · {r} left'],
+    partMark: ['Recebeu {a}', 'Cobró {a}', 'Got {a}'],
+    partInfo: ['Você já recebeu {a} desse turno · faltam {r}', 'Ya cobraste {a} de este turno · faltan {r}', 'You already got {a} for this shift · {r} left'],
+    partClear: ['Zerar', 'Borrar', 'Clear'],
+    partCleared: ['Valor parcial zerado. Salve pra confirmar.', 'Monto parcial borrado. Guarda para confirmar.', 'Partial amount cleared. Save to confirm.'],
     tipsReset: ['As dicas vão aparecer de novo em cada aba', 'Los consejos volverán a aparecer en cada pestaña', 'Tips will show again on each tab'],
     tipExp1: ['Seus gastos do trabalho|Uber, gasolina, ferramenta, aquele almoço que você comprou porque esqueceu a marmita… Tudo que sai do seu bolso por causa do trabalho fica aqui, somado sozinho.', 'Tus gastos del trabajo|Uber, gasolina, herramientas, ese almuerzo que compraste porque olvidaste la comida… Todo lo que sale de tu bolsillo por el trabajo queda aquí, sumado solo.', 'Your work expenses|Uber, gas, tools, that lunch you bought because you forgot yours at home… Everything work costs you lands here, added up for you.'],
     tipExp2: ['Anotar leva 5 segundos|Gastou alguma coisa? Toque no +, coloque o valor e escolha a categoria. Pronto.', 'Anotar toma 5 segundos|¿Gastaste algo? Toca +, pon el monto y elige la categoría. Listo.', 'Logging takes 5 seconds|Spent something? Tap +, enter the amount and pick a category. Done.'],
@@ -2151,9 +2229,11 @@ var QSplash = (function () {
     if (c.schedule === 'semimonthly') return t('schSemiTxt');
     return null;
   }
+  function recvd(e) { return e.paid ? (Number(e.pay) || 0) : Math.min(Number(e.pay) || 0, Math.max(0, Number(e.got) || 0)); }
+  function owedOf(e) { return e.paid ? 0 : Math.max(0, (Number(e.pay) || 0) - recvd(e)); }
   function openDeds(name) { var c = companyDoc(name); return (c && Array.isArray(c.deductions) ? c.deductions : []).filter(function (d) { return !d.settled; }); }
   function pendingFor(name) {
-    var owed = sum(S.entries.filter(function (e) { return e.company === name && !e.paid; }), function (e) { return e.pay; });
+    var owed = sum(S.entries.filter(function (e) { return e.company === name && !e.paid; }), owedOf);
     return Math.max(0, owed - sum(openDeds(name), function (d) { return d.amount; }));
   }
   function upcomingPays(maxDays) {
@@ -2215,17 +2295,50 @@ var QSplash = (function () {
   }
 
   /* ---------- início ---------- */
-  function periodDays() { return currentPeriod === 'month' ? today().getDate() : currentPeriod === '30' ? 30 : currentPeriod === 'all' ? null : 14; }
-  function periodStart() { if (currentPeriod === 'month') return isoDate(startOfMonth(today())); var n = periodDays(); return n ? isoDate(addDays(today(), -(n - 1))) : null; }
+  var homeMonth = null;
+  function hmDate() { return homeMonth || startOfMonth(today()); }
+  function isPastView() { return currentPeriod === 'month' && !!homeMonth && monthKey(homeMonth) < monthKey(today()); }
+  function viewMonth() { return currentPeriod === 'month' ? hmDate() : startOfMonth(today()); }
+  function firstEntryMonth() {
+    var f = S.entries.reduce(function (m, e) { return typeof e.date === 'string' && (!m || e.date < m) ? e.date : m; }, null);
+    return f ? startOfMonth(parseD(f)) : startOfMonth(today());
+  }
+  function hasPastMonths() { return monthKey(firstEntryMonth()) < monthKey(today()); }
+  function shiftHomeMonth(dir) {
+    var cur = hmDate(), nx = new Date(cur.getFullYear(), cur.getMonth() + dir, 1);
+    if (monthKey(nx) >= monthKey(today())) nx = null;
+    else if (monthKey(nx) < monthKey(firstEntryMonth())) return;
+    homeMonth = nx;
+    endTips();
+    var w = $('metalWrap'); w.classList.remove('m-swap', 'fwd'); void w.offsetWidth; w.classList.add('m-swap'); if (dir > 0) w.classList.add('fwd');
+    haptic();
+    renderTurnos();
+  }
+  function renderMonthNav() {
+    var on = currentPeriod === 'month';
+    $('sumLbl').hidden = on; $('mNav').hidden = !on;
+    if (!on) return;
+    var d = hmDate(), past = isPastView();
+    $('mNavLbl').innerHTML = esc(monthName(d.getMonth())) + (d.getFullYear() !== today().getFullYear() ? ' ' + d.getFullYear() : '');
+    $('mNext').disabled = !past;
+    $('mPrev').disabled = monthKey(d) <= monthKey(firstEntryMonth());
+    $('mPrev').setAttribute('aria-label', t('mPrev')); $('mNext').setAttribute('aria-label', t('mNext'));
+  }
+  function periodDays() {
+    if (currentPeriod === 'month') { var d = hmDate(); return isPastView() ? lastDay(d.getFullYear(), d.getMonth()) : today().getDate(); }
+    return currentPeriod === '30' ? 30 : currentPeriod === 'all' ? null : 14;
+  }
+  function periodStart() { if (currentPeriod === 'month') return isoDate(hmDate()); var n = periodDays(); return n ? isoDate(addDays(today(), -(n - 1))) : null; }
+  function periodEnd() { if (!isPastView()) return null; var d = hmDate(); return isoDate(new Date(d.getFullYear(), d.getMonth(), lastDay(d.getFullYear(), d.getMonth()))); }
   function markPeriodChips() { document.querySelectorAll('#chips button').forEach(function (x) { x.classList.toggle('active', x.getAttribute('data-period') === currentPeriod); }); }
   function periodEntries() {
-    var s = periodStart();
-    return S.entries.filter(function (e) { return (!s || e.date >= s) && (!companyFilter || e.company === companyFilter); });
+    var s = periodStart(), en = periodEnd();
+    return S.entries.filter(function (e) { return (!s || e.date >= s) && (!en || e.date <= en) && (!companyFilter || e.company === companyFilter); });
   }
   function byStatus(list) {
     if (currentStatus === 'all') return list;
-    var want = currentStatus === 'paid';
-    return list.filter(function (e) { return !!e.paid === want; });
+    if (currentStatus === 'paid') return list.filter(function (e) { return recvd(e) > 0; });
+    return list.filter(function (e) { return !e.paid; });
   }
   function groupByCompany(list) {
     var map = {}, order = [];
@@ -2277,8 +2390,8 @@ var QSplash = (function () {
       '<circle cx="' + last[0].toFixed(1) + '" cy="' + last[1].toFixed(1) + '" r="3" style="fill:var(--ink)"/></svg>';
   }
   function renderSegAmounts(all) {
-    var paid = sum(all.filter(function (e) { return e.paid; }), function (e) { return e.pay; });
-    var pend = sum(all.filter(function (e) { return !e.paid; }), function (e) { return e.pay; });
+    var paid = sum(all, recvd);
+    var pend = sum(all, owedOf);
     var f = function (v) { return formatMoney(v).replace(/\.\d\d$/, ''); };
     $('segAll').textContent = f(paid + pend); $('segPaid').textContent = f(paid); $('segOwed').textContent = f(pend);
     $('split').innerHTML = '';
@@ -2293,8 +2406,8 @@ var QSplash = (function () {
     box.hidden = false;
   }
   function renderSplit(all) {
-    var paid = sum(all.filter(function (e) { return e.paid; }), function (e) { return e.pay; });
-    var pend = sum(all.filter(function (e) { return !e.paid; }), function (e) { return e.pay; });
+    var paid = sum(all, recvd);
+    var pend = sum(all, owedOf);
     var tot = paid + pend;
     if (!tot) { $('split').innerHTML = ''; return; }
     $('split').innerHTML = '<div class="split-bar"><i style="width:' + (paid / tot * 100) + '%;background:var(--paid)"></i><i style="width:' + (pend / tot * 100) + '%;background:var(--unpaid)"></i></div>' +
@@ -2310,7 +2423,7 @@ var QSplash = (function () {
       : '<div class="tile"><span class="d">' + d.getDate() + '</span><span class="w">' + wdShort(d.getDay()) + '</span></div>';
     row.innerHTML = '<span class="row-check"></span>' + tile +
       '<div class="row-main"><div class="row-title"></div><div class="row-sub"></div></div>' +
-      '<div class="row-right"><div class="row-amt"></div>' + (e.paid ? '<span class="pill paid-mark">' + t('paidMark') + '</span>' : '') + '</div>';
+      '<div class="row-right"><div class="row-amt"></div>' + (e.paid ? '<span class="pill paid-mark">' + t('paidMark') + '</span>' : recvd(e) > 0 ? '<span class="pill part-mark">' + esc(t('partMark', { a: formatMoney(recvd(e)) })) + '</span>' : '') + '</div>';
     if (e.paid) row.classList.add('is-paid');
     var range = timeUI(e.timeIn) + ' – ' + timeUI(e.timeOut);
     row.querySelector('.row-title').textContent = showCompany ? e.company : range;
@@ -2335,12 +2448,13 @@ var QSplash = (function () {
   function markCompanyPaid(name) {
     var ids = S.entries.filter(function (e) { return e.company === name && !e.paid; }).map(function (e) { return e.id; });
     if (!ids.length) return;
+    var gotBefore = {}; S.entries.forEach(function (e) { if (ids.indexOf(e.id) > -1) gotBefore[e.id] = Number(e.got) || 0; });
     var amt = pendingFor(name), cdoc = companyDoc(name), before = cdoc && Array.isArray(cdoc.deductions) ? cdoc.deductions.map(function (d) { return Object.assign({}, d); }) : null;
-    ids.forEach(function (id) { patch('entries', id, { paid: true }); });
+    ids.forEach(function (id) { patch('entries', id, { paid: true, got: 0 }); });
     if (before && before.some(function (d) { return !d.settled; })) patch('companies', cdoc.id, { deductions: before.map(function (d) { return Object.assign({}, d, { settled: true }); }) });
     celebratePaid();
     toast(t('recvDone', { c: name, n: ids.length, a: formatMoney(amt) }), function () {
-      ids.forEach(function (id) { patch('entries', id, { paid: false }); });
+      ids.forEach(function (id) { patch('entries', id, { paid: false, got: gotBefore[id] || 0 }); });
       if (before) patch('companies', cdoc.id, { deductions: before });
       toast(t('restored'));
     });
@@ -2386,10 +2500,12 @@ var QSplash = (function () {
     var periodList = periodEntries();
     var list = byStatus(periodList);
     var groups = groupByCompany(list);
-    animateTotal(sum(list, function (e) { return e.pay; }));
-    $('heroLabel').textContent = currentStatus === 'paid' ? t('stPaid') : currentStatus === 'unpaid' ? t('stUnpaid') : t('stTotal');
+    var amtOf = currentStatus === 'paid' ? recvd : currentStatus === 'unpaid' ? owedOf : function (e) { return Number(e.pay) || 0; };
+    renderMonthNav();
+    animateTotal(sum(list, amtOf));
+    $('heroLabel').textContent = currentStatus === 'paid' ? t('stPaid') : currentStatus === 'unpaid' ? t('stUnpaid') : isPastView() ? t('stClosed') : t('stTotal');
     $('cardHours').textContent = formatHours(sum(list, function (e) { return e.hours; }));
-    $('cardPeriod').textContent = currentPeriod === 'all' ? t('all') : currentPeriod === 'month' ? monthName(today().getMonth()) : t(currentPeriod === '30' ? 'd30' : 'd14');
+    $('cardPeriod').textContent = currentPeriod === 'all' ? t('all') : currentPeriod === 'month' ? monthName(hmDate().getMonth()) : t(currentPeriod === '30' ? 'd30' : 'd14');
     renderSpark(list);
     renderSegAmounts(periodList);
     renderBrief();
@@ -2405,7 +2521,7 @@ var QSplash = (function () {
       card.style.setProperty('--co', col);
       var head = document.createElement('div'); head.className = 'group-head';
       head.innerHTML = '<div class="group-name"><span class="dot" style="background:' + col + '"></span><b></b></div>' +
-        '<div class="group-tot"><strong>' + formatMoney(g.pay) + '</strong></div>';
+        '<div class="group-tot"><strong>' + formatMoney(sum(g.rows, amtOf)) + '</strong></div>';
       head.querySelector('b').textContent = g.company;
       card.appendChild(head);
       var pendAll = S.entries.filter(function (e) { return e.company === g.company && !e.paid; });
@@ -2416,11 +2532,14 @@ var QSplash = (function () {
       card.appendChild(sub);
       g.rows.forEach(function (e) { card.appendChild(makeEntryRow(e, false)); });
       if (pendAll.length && !selectionMode) {
+        var rr = document.createElement('div'); rr.className = 'recv-row';
         var rb = document.createElement('button'); rb.type = 'button'; rb.className = 'recv-btn press';
         rb.innerHTML = ICON_RECV + '<span></span>';
         rb.querySelector('span').textContent = t('recvBtn', { a: formatMoney(pendingFor(g.company)) });
         rb.addEventListener('click', function () { markCompanyPaid(g.company); });
-        card.appendChild(rb);
+        var pb = document.createElement('button'); pb.type = 'button'; pb.className = 'part-btn press'; pb.textContent = t('partBtn');
+        pb.addEventListener('click', function () { openPart(g.company); });
+        rr.appendChild(rb); rr.appendChild(pb); card.appendChild(rr);
       }
       listEl.appendChild(card);
     });
@@ -2437,7 +2556,7 @@ var QSplash = (function () {
   }
   function bulkSetPaid(val) {
     var n = selectedIds.size;
-    Array.from(selectedIds).forEach(function (id) { patch('entries', id, { paid: val }); });
+    Array.from(selectedIds).forEach(function (id) { patch('entries', id, { paid: val, got: 0 }); });
     toggleSelection(false);
     if (n) toast(t(val ? 'markedPaid' : 'markedPend', { n: n }));
   }
@@ -2452,8 +2571,8 @@ var QSplash = (function () {
     $('metalBack').setAttribute('aria-hidden', on ? 'false' : 'true');
     haptic();
   }
-  function monthStats() {
-    var mk = monthKey(today());
+  function monthStats(md) {
+    var mk = monthKey(md || viewMonth());
     var es = S.entries.filter(function (e) { return typeof e.date === 'string' && e.date.slice(0, 7) === mk; });
     var xs = S.expenses.filter(function (x) { return typeof x.date === 'string' && x.date.slice(0, 7) === mk; });
     var per = {}, byCo = {};
@@ -2464,7 +2583,7 @@ var QSplash = (function () {
     return { es: es, hours: hours, days: Object.keys(per).length, gross: gross, best: best, bestAmt: best ? per[best] : 0, top: top, real: hours ? (gross - exp) / hours : 0 };
   }
   function renderCardBack() {
-    var m = monthStats(), mn = monthName(today().getMonth()), g = +prefs.goal || 4000;
+    var m = monthStats(), mn = monthName(viewMonth().getMonth()), g = +prefs.goal || 4000;
     $('mbTitle').textContent = t('mbTitle', { m: mn });
     var cell = function (k, v) { return '<div><div class="m-cap">' + t(k) + '</div><div class="mb-v">' + v + '</div></div>'; };
     $('mbGrid').innerHTML = cell('mbHours', formatHours(m.hours)) + cell('mbDays', m.days) + cell('mbGoal', prefs.tierOff ? '—' : Math.round(m.gross / g * 100) + '%') +
@@ -3070,7 +3189,7 @@ var CardFX = (function () {
         '<div class="comp-stats"><div class="mini"><div class="v owed">' + formatMoney(pendingFor(n)) + '</div><div class="l">' + t('owedL') + '</div></div>' +
         '<div class="mini"><div class="v">' + formatMoney(sum(me, function (e) { return e.pay; })) + '</div><div class="l">' + t('thisMonth') + '</div></div>' +
         '<div class="mini"><div class="v">' + formatHours(sum(me, function (e) { return e.hours; })) + '</div><div class="l">' + t('hoursMonth') + '</div></div></div>' +
-        (pendingFor(n) > 0 ? '<button type="button" class="recv-btn press" data-recv="' + esc(n) + '">' + ICON_RECV + '<span>' + esc(t('recvBtn', { a: formatMoney(pendingFor(n)) })) + '</span></button>' : '') +
+        (pendingFor(n) > 0 ? '<div class="recv-row"><button type="button" class="recv-btn press" data-recv="' + esc(n) + '">' + ICON_RECV + '<span>' + esc(t('recvBtn', { a: formatMoney(pendingFor(n)) })) + '</span></button><button type="button" class="part-btn press" data-part="' + esc(n) + '">' + esc(t('partBtn')) + '</button></div>' : '') +
         '<div class="btn-row"><button class="ghost press" data-see="' + esc(n) + '">' + t('seeShifts') + '</button>' +
         (S.entries.some(function (e) { return e.company === n; }) ? '<button class="ghost press" data-copy="' + esc(n) + '">' + t('copy') + '</button>' : '') +
         '<button class="ghost press" data-edit="' + esc(n) + '">' + t('edit') + '</button></div></div>';
@@ -3081,7 +3200,10 @@ var CardFX = (function () {
       b.addEventListener('click', function () { setArchived(b.getAttribute('data-unarch'), false); });
     });
     $('companyCards').querySelectorAll('[data-see]').forEach(function (b) {
-      b.addEventListener('click', function () { companyFilter = b.getAttribute('data-see'); setView('turnos'); });
+      b.addEventListener('click', function () { companyFilter = b.getAttribute('data-see'); currentPeriod = 'all'; homeMonth = null; setView('turnos'); });
+    });
+    $('companyCards').querySelectorAll('[data-part]').forEach(function (b) {
+      b.addEventListener('click', function () { openPart(b.getAttribute('data-part')); });
     });
     $('companyCards').querySelectorAll('[data-copy]').forEach(function (b) {
       b.addEventListener('click', function () { openCopy(b.getAttribute('data-copy')); });
@@ -3313,7 +3435,7 @@ var CardFX = (function () {
   }
 
   /* ---------- formulários ---------- */
-  var SHEETS = ['shiftSheet', 'expSheet', 'compSheet', 'prefSheet', 'copySheet', 'paySheet', 'timerSheet', 'obSheet', 'weekSheet', 'goalSheet', 'depSheet'];
+  var SHEETS = ['shiftSheet', 'expSheet', 'compSheet', 'prefSheet', 'copySheet', 'paySheet', 'timerSheet', 'obSheet', 'weekSheet', 'goalSheet', 'depSheet', 'partSheet'];
   function openSheet(id) {
     endTips();
     SHEETS.forEach(function (s) { $(s).hidden = s !== id; });
@@ -3460,6 +3582,7 @@ var CardFX = (function () {
     renderShiftChips();
     markDateQuick();
     setStatusToggle(e ? !!e.paid : false);
+    renderPartInfo(e);
     $('formError').hidden = true;
     var hasAdj = !!(e && e.adj && e.adj.from != null);
     if (hasAdj) { $('fIn').value = e.timeIn; $('fOut').value = e.timeOut; }
@@ -3501,6 +3624,11 @@ var CardFX = (function () {
       if (ph !== hours) { data.adj = { from: hours, reason: adjState.reason, note: $('adjNote').value.trim() }; data.hours = ph; data.pay = Math.round(ph * rate * 100) / 100; }
     }
     var id = editShiftId, wasTimer = fromTimer;
+    if (id) {
+      var cur0 = S.entries.find(function (x) { return x.id === id; }), g0 = cur0 ? Number(cur0.got) || 0 : 0;
+      if (data.paid || partClearFlag) data.got = 0;
+      else if (g0 > 0) { if (g0 >= data.pay - 0.004) { data.paid = true; data.got = 0; } else data.got = g0; }
+    }
     closeSheets();
     if (id) patch('entries', id, data); else add('entries', data);
     if (wasTimer) { timer = null; fromTimer = false; saveTimer(); renderTimer(); }
@@ -3639,6 +3767,8 @@ var CardFX = (function () {
     $('pTips').hidden = !!welcome;
     $('pInstall').hidden = !!welcome || !canInstall();
     $('pFeedback').hidden = !!welcome;
+    $('pExport').hidden = !!welcome;
+    $('bkSub').textContent = t(welcome ? 'bkSubNew' : 'bkSubOn');
     $('goalField').hidden = !!welcome;
     renderGoalField();
     refreshPhotoRow();
@@ -3840,7 +3970,7 @@ var CardFX = (function () {
     words.forEach(function (w) { var tst = line ? line + ' ' + w : w; if (c.measureText(tst).width > maxW && line) { lines.push(line); line = w; } else line = tst; });
     lines.push(line); lines.forEach(function (l, i) { c.fillText(l, x, y + i * lh); }); return lines.length;
   }
-  function currentTierKey() { return prefs.tierOff ? 'silver' : TIERS[tierFor(monthEarned())].k; }
+  function currentTierKey() { return prefs.tierOff ? 'silver' : TIERS[tierFor(monthEarned(viewMonth()))].k; }
   function drawShare(kind, info) {
     var W = 1080, H = 1920, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     var c = cv.getContext('2d'), tk = info.tier, T = TIER_CV[tk] || TIER_CV.silver;
@@ -3882,7 +4012,7 @@ var CardFX = (function () {
     return cv;
   }
   function shareInfo(kind, rr) {
-    var mn = monthName(today().getMonth()), tk = currentTierKey(), l = TIERS.findIndex(function (x) { return x.k === tk; });
+    var mn = monthName(viewMonth().getMonth()), tk = currentTierKey(), l = TIERS.findIndex(function (x) { return x.k === tk; });
     var name = (prefs.name || '').trim().split(/\s+/)[0] || 'Quinzo';
     if (kind === 'tier') {
       var m = monthStats();
@@ -3991,7 +4121,7 @@ var CardFX = (function () {
   ];
   var SPARK_COLORS = { bronze: ['#f0c19d', '#e2a57c', '#fff1e4'], silver: ['#ffffff', '#dfe4ea', '#b9c0ca'], gold: ['#ffe27a', '#fff3c4', '#f2b938'], platinum: ['#ffffff', '#c9d2e0', '#9aa6ba', '#e6ebf3'], emerald: ['#e6fbf8', '#8fe3da', '#ffffff', '#5cc9bf', '#c8f5f0'] };
   var tierAnimating = false, entriesReady = false, tierLevelShown = 0, pendingLevelUp = null;
-  function monthEarned() { var mk = monthKey(today()); return sum(S.entries.filter(function (e) { return typeof e.date === 'string' && e.date.slice(0, 7) === mk; }), function (e) { return e.pay; }); }
+  function monthEarned(md) { var mk = monthKey(md || today()); return sum(S.entries.filter(function (e) { return typeof e.date === 'string' && e.date.slice(0, 7) === mk; }), function (e) { return e.pay; }); }
   function tierFor(total) { var g = +prefs.goal || 4000, p = total / g; return p >= 1 ? 4 : p >= 0.75 ? 3 : p >= 0.5 ? 2 : p >= 0.25 ? 1 : 0; }
   function tierThreshold(l) { return (+prefs.goal || 4000) * [0, 0.25, 0.5, 0.75, 1][l]; }
   function applyTierClass(l) {
@@ -4005,6 +4135,17 @@ var CardFX = (function () {
   function renderTier() {
     var row = $('tierRow');
     if (prefs.tierOff) { row.hidden = true; if (!tierAnimating) applyTierClass(1); return; }
+    row.classList.toggle('closed', isPastView());
+    if (isPastView() && !tierAnimating) {
+      var pm = hmDate(), ptot = monthEarned(pm), pl = tierFor(ptot), pmn = monthName(pm.getMonth()), g0 = +prefs.goal || 4000;
+      applyTierClass(pl); row.hidden = false;
+      $('tierSwatch').style.background = TIERS[pl].sw;
+      $('tierName').innerHTML = t('tierLine', { m: esc(pmn.charAt(0).toUpperCase() + pmn.slice(1)), t: t(TIERS[pl].n), a: formatMoney(ptot) });
+      var nx0 = $('tierNext'); nx0.classList.remove('mystery');
+      nx0.textContent = pl >= 4 ? t('mClosedGoal') : t('mClosedPct', { p: Math.round(ptot / g0 * 100) });
+      var f0 = $('tierFill'); f0.style.width = Math.max(3, Math.min(100, ptot / g0 * 100)) + '%'; f0.style.background = TIERS[pl].sw;
+      return;
+    }
     var total = monthEarned(), l = tierFor(total), seen = prefs.tierSeen, mk = monthKey(today()), shown = l;
     if (entriesReady && profileReady && !tierAnimating) {
       var seenL = seen && seen.m === mk ? seen.l : (seen ? 0 : -1);
@@ -4030,7 +4171,7 @@ var CardFX = (function () {
   function queueLevelUp(from, to) { pendingLevelUp = { from: from, to: to }; setTimeout(runLevelUp, 1500); }
   function runLevelUp() {
     var job = pendingLevelUp; if (!job || tierAnimating) return;
-    if (view !== 'turnos' || !$('overlay').hidden || !$('splash').hidden || coach) { setTimeout(runLevelUp, 900); return; }
+    if (view !== 'turnos' || isPastView() || !$('overlay').hidden || !$('splash').hidden || coach) { setTimeout(runLevelUp, 900); return; }
     if (cardFlipped) { flipCard(false); setTimeout(runLevelUp, 750); return; }
     pendingLevelUp = null; tierAnimating = true; tierLevelShown = job.from;
     var card = $('metal'), wrap = $('metalWrap'), r = wrap.getBoundingClientRect();
@@ -4110,6 +4251,7 @@ var CardFX = (function () {
     goalSheet: [{ sel: '#gModeT', k: 'tipGS1' }, { sel: '#gPreview', k: 'tipGS2' }],
     moneyNav: [{ sel: '.nav-btn[data-view="despesas"]', k: 'tipMoneyNav' }],
     moneyNavNew: [{ sel: '.nav-btn[data-view="despesas"]', k: 'tipMoneyNavNew' }],
+    monthNav: [{ sel: '#mNav', k: 'tipMonthNav' }],
     homeBasics: [{ sel: '#metalWrap', k: 'tipHB1' }, { sel: '#statusTabs', k: 'tipHB2' }, { sel: '#list .recv-btn', k: 'tipHB3' }, { sel: '#qaTimer', k: 'tipHB4' }, { sel: '#fab', k: 'tipHB5' }],
     despesas: [{ sel: '#view-despesas .stat.wide', k: 'tipExp1' }, { sel: '#fab', k: 'tipExp2' }, { sel: '.nav-btn[data-view="graficos"]', k: 'tipExp3' }],
     empresas: [{ sel: '#companyCards .co-card', k: 'tipCo1' }, { sel: '#companyCards .recv-btn', k: 'tipCo2' }, { sel: '#companyCards [data-copy]', k: 'tipCo3' }, { sel: '#fab', k: 'tipCo4' }],
@@ -4151,7 +4293,7 @@ var CardFX = (function () {
     if (key === 'graficos' && tipsDone('graficos') && shownEl('#rcOpen') && !tipsDone('recapBtn')) key = 'recapBtn';
     else if (key === 'graficos' && tipsDone('graficos') && shownEl('#grafContent .adj-card')) key = 'graficosAdj';
     if (key === 'turnos' && !tipsDone('turnos') && !tipsDone('homeBasics') && shownEl('#list .co-card')) key = 'homeBasics';
-    else if (key === 'turnos' && (tipsDone('turnos') || prefs.tierOff) && shownEl('#brief')) key = !tipsDone('homeV2') ? 'homeV2' : !tipsDone('cardFlip') ? 'cardFlip' : (tipsDone('homeBasics') ? 'moneyNavNew' : 'moneyNav');
+    else if (key === 'turnos' && (tipsDone('turnos') || prefs.tierOff) && shownEl('#brief')) key = !tipsDone('homeV2') ? 'homeV2' : !tipsDone('cardFlip') ? 'cardFlip' : (!tipsDone('monthNav') && hasPastMonths() && shownEl('#mNav')) ? 'monthNav' : (tipsDone('homeBasics') ? 'moneyNavNew' : 'moneyNav');
     if (key === 'despesas') key = !tipsDone('money') ? 'money' : (shownEl('#goalList .gc-save') && !tipsDone('goalCard')) ? 'goalCard' : 'despesas';
     if (!TIPS[key] || tipsDone(key)) return;
     setTimeout(function () {
@@ -4638,6 +4780,102 @@ var CardFX = (function () {
     navigator.share({ text: text }).catch(function (err) { if (!err || err.name !== 'AbortError') doCopy(); });
   }
 
+  /* ---------- pagamento parcial ---------- */
+  var partCo = null, partClearFlag = false;
+  function openPart(name) {
+    partCo = name;
+    var pend = pendingFor(name), n = S.entries.filter(function (e) { return e.company === name && !e.paid; }).length;
+    $('partTitle').textContent = t('partTitle', { c: name });
+    $('ptHint').textContent = t('partHint', { a: formatMoney(pend), n: n });
+    $('ptAmount').value = ''; $('ptError').hidden = true;
+    $('ptQuick').innerHTML = pend > 0 ? '<button type="button" class="press" data-amt="' + pend + '">' + esc(t('partAll', { a: formatMoney(pend) })) + '</button>' : '';
+    openSheet('partSheet');
+    setTimeout(function () { try { $('ptAmount').focus(); } catch (e) {} }, 320);
+  }
+  function savePart() {
+    if ($('partSheet').hidden || !partCo) return;
+    var name = partCo, a = parseFloat($('ptAmount').value), pend = pendingFor(name);
+    if (isNaN(a) || a <= 0) { $('ptError').textContent = t('partErr'); $('ptError').hidden = false; return; }
+    a = Math.round(a * 100) / 100;
+    closeSheets();
+    if (a >= pend - 0.004) { markCompanyPaid(name); return; }
+    var rows = S.entries.filter(function (e) { return e.company === name && !e.paid; })
+      .sort(function (x, y) { return x.date.localeCompare(y.date) || String(x.timeIn).localeCompare(String(y.timeIn)); });
+    var undo = [], rem = a;
+    for (var i = 0; i < rows.length && rem > 0.004; i++) {
+      var e = rows[i], owe = owedOf(e); if (owe <= 0) continue;
+      undo.push({ id: e.id, paid: !!e.paid, got: Number(e.got) || 0 });
+      if (rem >= owe - 0.004) { patch('entries', e.id, { paid: true, got: 0 }); rem -= owe; }
+      else { patch('entries', e.id, { got: Math.round((recvd(e) + rem) * 100) / 100 }); rem = 0; }
+    }
+    celebratePaid();
+    toast(t('partDone', { a: formatMoney(a), c: name, r: formatMoney(pendingFor(name)) }), function () {
+      undo.forEach(function (u) { patch('entries', u.id, { paid: u.paid, got: u.got }); });
+      toast(t('restored'));
+    });
+  }
+  function renderPartInfo(e) {
+    var box = $('partInfo'), got = e && !e.paid ? recvd(e) : 0;
+    partClearFlag = false; $('partClear').hidden = false;
+    box.hidden = !(got > 0);
+    if (got > 0) $('partInfoTxt').textContent = t('partInfo', { a: formatMoney(got), r: formatMoney(owedOf(e)) });
+  }
+
+  /* ---------- backup (exportar / importar) ---------- */
+  var BK_KEYS = ['name', 'mode', 'lang', 'photo', 'tips', 'copyLang', 'copyMoney', 'goal', 'tierOff', 'clock24', 'discreet', 'dismiss', 'tierSeen'];
+  function exportBackup() {
+    var data = { app: 'quinzo', v: 1, at: new Date().toISOString(), prefs: {}, timer: timer || null };
+    BK_KEYS.forEach(function (k) { if (prefs[k] !== undefined) data.prefs[k] = prefs[k]; });
+    COLS.forEach(function (c) { data[c] = S[c].map(function (x) { return Object.assign({}, x); }); });
+    var blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    deliverFile(blob, 'Quinzo-backup-' + isoDate(today()) + '.json', 'application/json')
+      .then(function (res) { if (res === 'ok') toast(t('bkSaved')); }, function () { toast(t('bkFail')); });
+  }
+  function readBackup(file) {
+    var rd = new FileReader();
+    rd.onload = function () {
+      var d = null; try { d = JSON.parse(String(rd.result || '')); } catch (e) {}
+      if (!d || d.app !== 'quinzo' || !Array.isArray(d.entries)) { $('pPhotoErr').textContent = t('bkBad'); $('pPhotoErr').hidden = false; return; }
+      var n = function (c) { return Array.isArray(d[c]) ? d[c].length : 0; };
+      if (!window.confirm(t('bkConfirm', { e: n('entries'), x: n('expenses'), c: n('companies'), g: n('goals') }))) return;
+      try { applyBackup(d); } catch (e) { $('pPhotoErr').textContent = t('bkFail'); $('pPhotoErr').hidden = false; }
+    };
+    rd.onerror = function () { $('pPhotoErr').textContent = t('bkFail'); $('pPhotoErr').hidden = false; };
+    rd.readAsText(file);
+  }
+  function applyBackup(d) {
+    var src = d.prefs && typeof d.prefs === 'object' ? d.prefs : {};
+    BK_KEYS.forEach(function (k) { if (src[k] !== undefined) prefs[k] = src[k]; });
+    if (LANGS.indexOf(prefs.lang) < 0) prefs.lang = 'pt';
+    prefs.onboarded = true;
+    var tm = d.timer && d.timer.company && d.timer.start ? { company: String(d.timer.company), start: +d.timer.start } : null;
+    var data = {};
+    COLS.forEach(function (c) {
+      data[c] = (Array.isArray(d[c]) ? d[c] : []).filter(function (x) { return x && typeof x === 'object'; })
+        .map(function (x) { var o = Object.assign({}, x); if (!o.id || typeof o.id !== 'string') o.id = uid(); return o; });
+    });
+    try { localStorage.setItem('quinzo_bk_done', String(data.entries.length)); } catch (e) {}
+    if (useDb) {
+      COLS.forEach(function (c) {
+        var keep = {}; data[c].forEach(function (x) { keep[x.id] = 1; });
+        S[c].forEach(function (x) { if (!keep[x.id]) dbNS.collection(c).doc(x.id).delete().catch(function () {}); });
+        data[c].forEach(function (x) { var cl = Object.assign({}, x); delete cl.id; dbNS.collection(c).doc(x.id).set(cl).catch(dbErr('errSave')); });
+      });
+      timer = tm; saveTimer(); savePrefs(); applyPrefs(); closeSheets(); renderAll(); renderTimer();
+      toast(t('bkDone', { e: data.entries.length }));
+      try { localStorage.removeItem('quinzo_bk_done'); } catch (e) {}
+      return;
+    }
+    COLS.forEach(function (c) { localStorage.setItem(lk(c), JSON.stringify(data[c])); });
+    localStorage.setItem(PREF_KEY, JSON.stringify(prefs));
+    if (tm) localStorage.setItem(TIMER_KEY, JSON.stringify(tm)); else localStorage.removeItem(TIMER_KEY);
+    location.reload();
+  }
+  function backupDoneToast() {
+    var n = null; try { n = localStorage.getItem('quinzo_bk_done'); localStorage.removeItem('quinzo_bk_done'); } catch (e) {}
+    if (n != null) setTimeout(function () { toast(t('bkDone', { e: n })); }, 900);
+  }
+
 
   /* ---------- Beta: instalar na tela do celular ---------- */
   var FB_PHONE = '17807144524';
@@ -4899,6 +5137,9 @@ var CardFX = (function () {
     $('pGoal').addEventListener('change', function () { var v = Math.round(+this.value); if (v >= 100) { prefs.goal = v; savePrefs(); renderGoalField(); renderAll(); } else renderGoalField(); });
     $('pTierQuick').addEventListener('click', function (ev) { var b = ev.target.closest('[data-v]'); if (!b) return; prefs.tierOff = b.getAttribute('data-v') === 'off'; savePrefs(); renderGoalField(); renderAll(); });
     $('tierRow').addEventListener('click', function () { openPrefs(false); setTimeout(function () { $('goalField').scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 350); });
+    $('pExport').addEventListener('click', exportBackup);
+    $('pImportBtn').addEventListener('click', function () { $('pPhotoErr').hidden = true; try { $('pImport').click(); } catch (e) {} });
+    $('pImport').addEventListener('change', function () { var f = this.files && this.files[0]; this.value = ''; if (f) readBackup(f); });
     $('pTips').addEventListener('click', function () { prefs.tips = {}; savePrefs(); closeSheets(); toast(t('tipsReset')); });
     $('coachNext').addEventListener('click', nextTip);
     $('coachSkip').addEventListener('click', function () { endTips(true); });
@@ -4920,8 +5161,19 @@ var CardFX = (function () {
 
     $('chips').addEventListener('click', function (ev) {
       var c = ev.target.closest('[data-period]'); if (!c) return;
-      currentPeriod = c.getAttribute('data-period'); renderTurnos();
+      var p = c.getAttribute('data-period');
+      homeMonth = null;
+      currentPeriod = p; renderTurnos();
     });
+    $('mNav').addEventListener('click', function (ev) {
+      var b = ev.target.closest('[data-mdir]');
+      if (b) { if (!b.disabled) shiftHomeMonth(+b.getAttribute('data-mdir')); return; }
+      if (ev.target.closest('#mNavLbl') && homeMonth) { homeMonth = null; haptic(); renderTurnos(); }
+    });
+    $('ptSave').addEventListener('click', savePart);
+    $('ptQuick').addEventListener('click', function (ev) { var b = ev.target.closest('[data-amt]'); if (!b) return; $('ptAmount').value = b.getAttribute('data-amt'); $('ptError').hidden = true; });
+    $('ptAmount').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') savePart(); });
+    $('partClear').addEventListener('click', function () { partClearFlag = true; $('partInfoTxt').textContent = t('partCleared'); $('partClear').hidden = true; });
     $('statusTabs').addEventListener('click', function (ev) {
       var tb = ev.target.closest('[data-status]'); if (!tb) return;
       document.querySelectorAll('#statusTabs button').forEach(function (x) { x.classList.remove('active'); });
@@ -4937,7 +5189,7 @@ var CardFX = (function () {
     if (!prefs.onboarded && canInstall() && !gateSkipped()) openGate(function () { openPrefs(true); });
     else if (!prefs.onboarded) openPrefs(true);
 
-    function fallback() { profileReady = true; loadLocal(); entriesReady = true; renderAll(); QSplash.ready(); }
+    function fallback() { profileReady = true; loadLocal(); entriesReady = true; renderAll(); QSplash.ready(); backupDoneToast(); }
     fallback();
   }
 
